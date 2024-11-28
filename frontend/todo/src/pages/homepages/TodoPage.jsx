@@ -6,19 +6,14 @@
 // import { currentuser } from "../../services/AuthService";
 // import { toast } from "react-toastify";
 // import { v4 as uuidv4 } from "uuid";
-// import FloatingButton from "../../components/home/FloatingButton";
-// import EditForm from "../../components/home/EditForm";
-// import TodoItem from "../../components/home/Todoitem";
-// import { useOutletContext } from "react-router-dom";
+// import { Container, Box, Grid, Typography, TextField, Button, Paper, Card, IconButton } from "@mui/material";
+// import { Edit, Delete, CheckCircle, Undo } from "@mui/icons-material";
 
 // export default function TodoPage() {
-
-//   const { isDarkMode, setIsDarkMode } = useOutletContext();
 //   const [todos, setTodo] = useState([]);
-//   const [isOpen, setIsOpen] = useState(false);
-//   const [editTodo, setEditTodo] = useState("");
+//   const [task, setTask] = useState("");
+//   const [editTodo, setEditTodo] = useState(null);
 //   const [currentUser, setCurrentUser] = useState("");
-
 
 //   useEffect(() => {
 //     const fetchTodos = async () => {
@@ -45,19 +40,15 @@
 //       }
 //     };
 
-    
-
 //     getCurrent();
 //     fetchTodos();
 //   }, []);
 
- 
-
-//   const todoSubmit = async (text) => {
-//     if (text.trim() !== "") {
+//   const todoSubmit = async () => {
+//     if (task.trim() !== "") {
 //       const id = uuidv4();
-//       const newtodo = {
-//         task: text,
+//       const newTodo = {
+//         task,
 //         deleted: false,
 //         user_id: "",
 //         todo_id: id,
@@ -66,8 +57,9 @@
 //       };
 
 //       try {
-//         setTodo([...todos, newtodo]);
-//         await addTodo(newtodo);
+//         setTodo([...todos, newTodo]);
+//         await addTodo(newTodo);
+//         setTask(""); // Clear the input field after submission
 //       } catch (error) {
 //         toast.error("Error adding todo");
 //       }
@@ -80,7 +72,7 @@
 //     setTodo((prev) =>
 //       prev.map((todo, i) => {
 //         if (i === index) {
-//           handeCompleted(todo.todo_id, !todo.completed);
+//           handleCompleted(todo.todo_id, !todo.completed);
 //           return { ...todo, completed: !todo.completed };
 //         }
 //         return todo;
@@ -88,7 +80,7 @@
 //     );
 //   };
 
-//   const handeCompleted = async (todo_id, isCompleted) => {
+//   const handleCompleted = async (todo_id, isCompleted) => {
 //     try {
 //       await markasCompletedDb(todo_id, isCompleted);
 //     } catch (error) {
@@ -99,11 +91,9 @@
 //   const handleDelete = (index) => {
 //     setTodo((prev) => {
 //       const todoToDelete = prev[index];
-
 //       if (todoToDelete) {
 //         handleDeleteDb(todoToDelete.todo_id);
 //       }
-
 //       return prev.filter((_, i) => i !== index);
 //     });
 //   };
@@ -117,107 +107,132 @@
 //     }
 //   };
 
-//   const handleEdit = (index) => {
-//     const todoedit = todos[index];
-//     setEditTodo(todoedit);
-//     setIsOpen(true);
+//   const handleEdit = (todo) => {
+//     setEditTodo(todo);
+//     setTask(todo.task); // Pre-fill the task input with the existing todo text
 //   };
 
-//   const handleEditDb = async (editedTodo) => {
-//     setTodo((prev) =>
-//       prev.map((todo) => {
-//         if (todo.todo_id === editedTodo.todo_id) {
-//           return { ...todo, task: editedTodo.task };
-//         }
-//         return todo;
-//       })
-//     );
-//     try {
-//       const response = await updateTodo(editedTodo.task, editedTodo.todo_id);
-//       toast.success(response.message);
-//     } catch (error) {
-//       toast.error(error);
+//   const handleEditDb = async () => {
+//     if (task.trim() !== "") {
+//       const updatedTodo = { ...editTodo, task };
+//       setTodo((prev) =>
+//         prev.map((todo) => (todo.todo_id === updatedTodo.todo_id ? updatedTodo : todo))
+//       );
+
+//       try {
+//         await updateTodo(updatedTodo.task, updatedTodo.todo_id);
+//         setEditTodo(null);
+//         setTask("");
+//         toast.success("Todo updated successfully");
+//       } catch (error) {
+//         toast.error("Error updating todo");
+//       }
+//     } else {
+//       toast.error("Please enter a task");
 //     }
 //   };
 
-//   const toggleDarkMode = () => {
-//     setIsDarkMode(!isDarkMode);
-//   };
-
 //   return (
-//     <div className={`
-//       min-h-screen 
-//       ${isDarkMode ? 'bg-gray-900 text-gray-100' : 'bg-gradient-to-br from-blue-50 to-blue-100'}
-//       py-8 px-4 sm:px-6 lg:px-8
-//     `}>
-//       <div className="max-w-2xl mx-auto">
-//         {/* User Display and Dark Mode Toggle */}
-//         <div className="flex justify-between items-center mb-6">
-//           {currentUser && (
-//             <div className={`
-//               text-lg font-semibold
-//               ${isDarkMode ? 'text-gray-200' : 'text-blue-800'}
-//             `}>
-//               Welcome, {currentUser}
-//             </div>
-//           )}
-//           <button 
-//             onClick={toggleDarkMode}
-//             className={`
-//               px-4 py-2 rounded-full transition-colors duration-300
-//               ${isDarkMode 
-//                 ? 'bg-gray-700 text-yellow-400 hover:bg-gray-600' 
-//                 : 'bg-blue-100 text-blue-800 hover:bg-blue-200'}
-//             `}
-//           >
-//             {isDarkMode ? '☀️ Light Mode' : '🌙 Dark Mode'}
-//           </button>
-//         </div>
+//     <Container
+//       maxWidth="xl"
+//       sx={{
+//         minHeight: "100vh",
+//         backgroundColor: "#e8f5e9", // Light green background
+//         color: "#212121",
+//         padding: 3,
+//         display: "flex",
+//       }}
+//     >
+//       {/* Left side - Task List */}
+//       <Box sx={{ flex: 3, paddingRight: 2 }}>
+//         <Typography variant="h5" color="#388e3c" mb={4}>
+//           {currentUser ? `Welcome, ${currentUser}` : "Welcome!"}
+//         </Typography>
 
-//         <header className="mb-6">
-//           <h1 className={`
-//             text-4xl font-extrabold text-center tracking-tight
-//             ${isDarkMode ? 'text-white' : 'text-blue-800'}
-//           `}>
-//             Todo List
-//           </h1>
-//         </header>
-
-//         <section className={`
-//           shadow-xl rounded-lg overflow-hidden
-//           ${isDarkMode ? 'bg-gray-800 border border-gray-700' : 'bg-white'}
-//         `}>
+//         {/* Todo List */}
+//         <Box>
 //           {todos.length > 0 ? (
-//             <ul className={`divide-y ${isDarkMode ? 'divide-gray-700' : 'divide-gray-200'}`}>
+//             <Grid container spacing={2}>
 //               {todos.map((todo, index) => (
-//                 <TodoItem index={index} handleDelete={handleDelete} handleEdit={handleEdit} key={todo.todo_id} todo={todo} markasCompleted={markasCompleted} isDarkMode={isDarkMode}/>
-                
+//                 <Grid item xs={12} sm={6} md={4} key={todo.todo_id}>
+//                   <Paper
+//                     elevation={3}
+//                     sx={{
+//                       padding: 2,
+//                       backgroundColor: todo.completed ? "#c8e6c9" : "#ffffff", // Greenish for completed
+//                       display: "flex",
+//                       flexDirection: "column",
+//                       justifyContent: "space-between",
+//                       alignItems: "flex-start",
+//                       height: "150px",
+//                       "&:hover": {
+//                         backgroundColor: "#f1f8e9", // Hover effect
+//                         cursor: "pointer",
+//                       },
+//                     }}
+//                   >
+//                     <Box>
+//                       <Typography variant="body1" color="#212121" sx={{ marginBottom: "auto" }}>
+//                         {todo.task}
+//                       </Typography>
+//                     </Box>
+//                     <Box sx={{ display: "flex", justifyContent: "space-around", width: "100%" }}>
+//                       <IconButton onClick={() => markasCompleted(index)} sx={{ "&:hover": { color: "#388e3c" } }}>
+//                         {todo.completed ? <Undo /> : <CheckCircle />}
+//                       </IconButton>
+//                       <IconButton onClick={() => handleEdit(todo)} sx={{ "&:hover": { color: "#388e3c" } }}>
+//                         <Edit />
+//                       </IconButton>
+//                       <IconButton onClick={() => handleDelete(index)} sx={{ "&:hover": { color: "#d32f2f" } }}>
+//                         <Delete />
+//                       </IconButton>
+//                     </Box>
+//                   </Paper>
+//                 </Grid>
 //               ))}
-//             </ul>
+//             </Grid>
 //           ) : (
-//             <div className={`
-//               text-center py-10 
-//               ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}
-//             `}>
-//               <p className="text-xl">No todos yet. Add a new task!</p>
-//             </div>
+//             <Typography variant="h6" color="textSecondary" textAlign="center" sx={{ padding: 5 }}>
+//               No todos yet. Add a new task!
+//             </Typography>
 //           )}
-//         </section>
+//         </Box>
+//       </Box>
 
-//         <FloatingButton theme={isDarkMode} toSubmit={todoSubmit} />
-
-//         <EditForm
-//           task={editTodo}
-//           isOpen={isOpen}
-//           onClose={() => setIsOpen(false)}
-//           onSubmit={handleEditDb}
-//           initialValue=""
-//         />
-//       </div>
-//     </div>
+//       {/* Right side - Todo Form */}
+//       <Box sx={{ flex: 2 }}>
+//         <Card sx={{ padding: 3, boxShadow: 3, backgroundColor: "#ffffff" }}>
+//           <Typography variant="h6" fontWeight="bold" mb={2} color="#388e3c">
+//             {editTodo ? "Edit Todo" : "Add a New Todo"}
+//           </Typography>
+//           <TextField
+//             label="Task"
+//             variant="outlined"
+//             fullWidth
+//             value={task}
+//             onChange={(e) => setTask(e.target.value)}
+//             sx={{ mb: 2 }}
+//           />
+//           <Button
+//             variant="contained"
+//             color="success"
+//             onClick={editTodo ? handleEditDb : todoSubmit}
+//             fullWidth
+//             sx={{
+//               fontWeight: "bold",
+//               backgroundColor: "#388e3c", // Primary green color
+//               "&:hover": {
+//                 backgroundColor: "#1b5e20", // Darker shade on hover
+//               },
+//             }}
+//           >
+//             {editTodo ? "Save Changes" : "Add Todo"}
+//           </Button>
+//         </Card>
+//       </Box>
+//     </Container>
 //   );
 // }
-
 
 import React, { useState, useEffect } from "react";
 import { getAllTodos, updateTodo } from "../../services/TodoServices";
@@ -362,60 +377,18 @@ export default function TodoPage() {
         color: "#212121",
         padding: 3,
         display: "flex",
+        flexDirection: "column", // Ensure the layout is vertical on mobile
       }}
     >
-      {/* Left side - Task List */}
-      <Box sx={{ flex: 3, paddingRight: 2 }}>
-        <Typography variant="h5" color="#388e3c" mb={4}>
+      {/* Welcome Message */}
+      <Box sx={{ marginBottom: 2 }}>
+        <Typography variant="h5" color="#388e3c">
           {currentUser ? `Welcome, ${currentUser}` : "Welcome!"}
         </Typography>
-
-        {/* Todo List */}
-        <Box>
-          {todos.length > 0 ? (
-            <Grid container spacing={2}>
-              {todos.map((todo, index) => (
-                <Grid item xs={12} sm={6} md={4} key={todo.todo_id}>
-                  <Paper
-                    elevation={3}
-                    sx={{
-                      padding: 2,
-                      backgroundColor: todo.completed ? "#c8e6c9" : "#ffffff", // Greenish for completed
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "center",
-                    }}
-                  >
-                    <Box>
-                      <Typography variant="body1" fontWeight="bold" color="#212121">
-                        {todo.task}
-                      </Typography>
-                    </Box>
-                    <Box>
-                      <IconButton onClick={() => markasCompleted(index)}>
-                        {todo.completed ? <Undo /> : <CheckCircle />}
-                      </IconButton>
-                      <IconButton onClick={() => handleEdit(todo)}>
-                        <Edit />
-                      </IconButton>
-                      <IconButton onClick={() => handleDelete(index)}>
-                        <Delete />
-                      </IconButton>
-                    </Box>
-                  </Paper>
-                </Grid>
-              ))}
-            </Grid>
-          ) : (
-            <Typography variant="h6" color="textSecondary" textAlign="center" sx={{ padding: 5 }}>
-              No todos yet. Add a new task!
-            </Typography>
-          )}
-        </Box>
       </Box>
 
-      {/* Right side - Todo Form */}
-      <Box sx={{ flex: 2 }}>
+      {/* Todo Form */}
+      <Box sx={{ marginBottom: 3 }}>
         <Card sx={{ padding: 3, boxShadow: 3, backgroundColor: "#ffffff" }}>
           <Typography variant="h6" fontWeight="bold" mb={2} color="#388e3c">
             {editTodo ? "Edit Todo" : "Add a New Todo"}
@@ -445,7 +418,55 @@ export default function TodoPage() {
           </Button>
         </Card>
       </Box>
+
+      {/* Todo List */}
+      <Box>
+        {todos.length > 0 ? (
+          <Grid container spacing={2}>
+            {todos.map((todo, index) => (
+              <Grid item xs={12} sm={6} md={4} key={todo.todo_id}> {/* Full width on mobile, 2 columns on small screens and 3 columns on medium screens */}
+                <Paper
+                  elevation={3}
+                  sx={{
+                    padding: 2,
+                    backgroundColor: todo.completed ? "#c8e6c9" : "#ffffff", // Greenish for completed
+                    display: "flex",
+                    flexDirection: "column",
+                    justifyContent: "space-between",
+                    alignItems: "flex-start",
+                    height: "150px",
+                    "&:hover": {
+                      backgroundColor: "#f1f8e9", // Hover effect
+                      cursor: "pointer",
+                    },
+                  }}
+                >
+                  <Box>
+                    <Typography variant="body1" color="#212121" sx={{ marginBottom: "auto" }}>
+                      {todo.task}
+                    </Typography>
+                  </Box>
+                  <Box sx={{ display: "flex", justifyContent: "space-around", width: "100%" }}>
+                    <IconButton onClick={() => markasCompleted(index)} sx={{ "&:hover": { color: "#388e3c" } }}>
+                      {todo.completed ? <Undo /> : <CheckCircle />}
+                    </IconButton>
+                    <IconButton onClick={() => handleEdit(todo)} sx={{ "&:hover": { color: "#388e3c" } }}>
+                      <Edit />
+                    </IconButton>
+                    <IconButton onClick={() => handleDelete(index)} sx={{ "&:hover": { color: "#d32f2f" } }}>
+                      <Delete />
+                    </IconButton>
+                  </Box>
+                </Paper>
+              </Grid>
+            ))}
+          </Grid>
+        ) : (
+          <Typography variant="h6" color="textSecondary" textAlign="center" sx={{ padding: 5 }}>
+            No todos yet. Add a new task!
+          </Typography>
+        )}
+      </Box>
     </Container>
   );
 }
-

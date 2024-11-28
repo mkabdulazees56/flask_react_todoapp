@@ -4,7 +4,7 @@ import MainLayout from "./layout/MainLayout";
 import ProtectedRoute from "./protected_route/ProtectedRoute";
 import AuthLayout from "./layout/AuthLayout";
 import SignUpPage from "./pages/auth_pages/SignUpPage";
-import NotfoundPage from "./pages/404/NotfoundPage";
+import NotfoundPage from "./pages/NotfoundPage";
 import TodoPage from "./pages/homepages/TodoPage";
 
 function App() {
