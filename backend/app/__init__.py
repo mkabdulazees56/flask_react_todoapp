@@ -11,7 +11,7 @@ from pymongo import MongoClient
 load_dotenv()
 
 uri = Config.MONGO_URI  
-print(uri)
+
 try:
     client = MongoClient(uri)
     db = client.get_database()
@@ -43,7 +43,8 @@ def create_app():
     app.register_blueprint(auth_bp, url_prefix='/api/v1/auth')
     app.register_blueprint(todo_bp, url_prefix='/api/v1/todos')
 
-    CORS(app)
+  
+    CORS(app, resources={r"/*": {"origins": "*"}})
 
 
     return app

@@ -1,36 +1,32 @@
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom"
-import LoginPage from "./pages/auth_pages/Loginpage"
-import TodoPage from "./pages/TodoPage"
-import MainLayout from "./layout/MainLayout"
-import AuthLayout from "./layout/AuthLayout"
-import ProtectedRoute from "./protected_route/ProtectedRoute"
-import SignUpPage from "./pages/auth_pages/SignUpPage"
-import NotfoundPage from "./pages/404/NotfoundPage"
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import LoginPage from "./pages/auth_pages/Loginpage";
+import MainLayout from "./layout/MainLayout";
+import ProtectedRoute from "./protected_route/ProtectedRoute";
+import AuthLayout from "./layout/AuthLayout";
+import SignUpPage from "./pages/auth_pages/SignUpPage";
+import NotfoundPage from "./pages/NotfoundPage";
+import TodoPage from "./pages/homepages/TodoPage";
 
 function App() {
-
-
   return (
-   <BrowserRouter>
-   <Routes>
+    <BrowserRouter>
+      <Routes>
+       <Route element={<AuthLayout />}>
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/signup" element={<SignUpPage />} />
+        </Route> 
 
-    <Route  element={<AuthLayout/>}>
-      <Route path="/login" element={<LoginPage/>} />
-      <Route path="/signup" element={<SignUpPage/>} />
-    </Route>
+        <Route element={<ProtectedRoute />}>
+          <Route path="/" element={<MainLayout />}>
+            <Route index element={<TodoPage />} />
+            <Route path="*" element={<NotfoundPage />} />
+          </Route>
+        </Route>
 
-    <Route element= {<ProtectedRoute />}>
-      <Route element={<MainLayout/>}>
-        <Route path="/todopage" element={<TodoPage/>}/>
-        <Route path="*" element={<NotfoundPage/>}/>
-      </Route>
-    </Route>
-   
-    
-    <Route path="*" element={<Navigate to="/login" replace />} />
-   </Routes>
-   </BrowserRouter>
-  )
+        <Route path="*" element={<Navigate to="/login" replace />} />
+      </Routes>
+    </BrowserRouter>
+  );
 }
 
-export default App
+export default App;

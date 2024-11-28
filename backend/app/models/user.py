@@ -10,28 +10,27 @@ class User:
 
            
     @classmethod
-    def get_user_by_username(cls, username):
-        print(username)
+    def get_user_by_email(cls, email):     
         try:
-            return current_app.db.users.find_one({"username": username})
+            return current_app.db.users.find_one({"email": email})
         except Exception as e:
             print(f"Error fetching user by username: {e}")
             return None
         
         
     @classmethod
-    def create_user(cls, username, password):
-        print(password)
+    def create_user(cls, email, username, password):
+
         try:
-            return current_app.db.users.insert_one({"username": username, "password": password})
+            return current_app.db.users.insert_one({"email": email, "username": username, "password": password})
         except Exception as e:
             print(f"Error creating user: {e}")
             return None
         
     @classmethod
-    def check_password(cls, username, password):
+    def check_password(cls, email, password):
         try:
-            user = cls.get_user_by_username(username)
+            user = cls.get_user_by_email(email)
             print(user)
             if user:
                 ispasswordmatched = check_password_hash(user["password"], password)
