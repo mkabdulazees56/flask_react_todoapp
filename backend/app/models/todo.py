@@ -15,7 +15,7 @@ class Todo:
             return results
         except Exception as e:
             print(f"Error creating todo: {e}")
-            return None
+            return "Error creating todo"
 
     @classmethod
     def get_todos(cls, user_id):
@@ -23,25 +23,25 @@ class Todo:
             return current_app.db.todos.find({"user_id": user_id, "deleted": False})
         except Exception as e:
             print(f"Error fetching todos: {e}")
-            return None
+            return "Error featching todo"
 
     @classmethod
     def update_todo(cls, task, todo_id):
         try:
             results = current_app.db.todos.update_one({"todo_id": todo_id}, {"$set": {"task": task}})
+
             n_modified = results.raw_result['nModified']
             return n_modified;
         except Exception as e:
             print(f"Error updating todo: {e}")
-            return None
+            return "Error updating todo"
     
     @classmethod
     def mark_as_completed(cls, todo_id, completed):
-        
         try:
             results = current_app.db.todos.update_one({"todo_id": todo_id}, {"$set": {"completed": completed}})
-            n_modified = results.raw_result['nModified']
-            
+
+            n_modified = results.raw_result['nModified']          
             return n_modified;
         except Exception as e:
             print(f"Error updating todo: {e}")
@@ -52,6 +52,7 @@ class Todo:
      
         try:
             results = current_app.db.todos.update_one({"todo_id": todo_Id}, {"$set": {"deleted": True}})
+
             n_modified = results.raw_result['nModified']
             print(n_modified)           
             return n_modified;

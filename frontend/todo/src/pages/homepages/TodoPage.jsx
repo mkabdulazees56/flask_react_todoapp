@@ -1,22 +1,26 @@
-import { useState, useEffect } from "react";
-import { getAllTodos, updateTodo, addTodo, markasCompletedDb, deleteTodo } from "../../services/TodoServices";
+import React, { useState, useEffect } from "react";
+import { getAllTodos, updateTodo } from "../../services/TodoServices";
+import { addTodo } from "../../services/TodoServices";
+import { markasCompletedDb } from "../../services/TodoServices";
+import { deleteTodo } from "../../services/TodoServices";
+import { currentuser } from "../../services/AuthService";
 import { toast } from "react-toastify";
 import { v4 as uuidv4 } from "uuid";
-import { Button, Container, Grid, Typography, TextField, Checkbox, IconButton } from "@mui/material";
-import { Edit as EditIcon, Delete as DeleteIcon } from "@mui/icons-material";
+import FloatingButton from "../../components/home/FloatingButton";
+import EditForm from "../../components/home/EditForm";
+import TodoItem from "../../components/home/Todoitem";
+import { useOutletContext } from "react-router-dom";
 
 export default function TodoPage() {
+
+  const { isDarkMode, setIsDarkMode } = useOutletContext();
   const [todos, setTodo] = useState([]);
-  const [newTask, setNewTask] = useState("");
-  const [isEditing, setIsEditing] = useState(false);
-  const [currentTaskId, setCurrentTaskId] = useState(null);
-  const [user, setUser] = useState(""); // To store the logged-in user
+  const [isOpen, setIsOpen] = useState(false);
+  const [editTodo, setEditTodo] = useState("");
+  const [currentUser, setCurrentUser] = useState("");
+
 
   useEffect(() => {
-    // Fetch logged-in user data (example: from localStorage, context, or API)
-    const loggedInUser = localStorage.getItem("user") || "Guest"; // Adjust as per your authentication method
-    setUser(loggedInUser);
-
     const fetchTodos = async () => {
       try {
         const todos = await getAllTodos();
@@ -34,53 +38,38 @@ export default function TodoPage() {
       }
     };
 
+    const getCurrent = () => {
+      const user = currentuser();
+      if (user !== null) {
+        setCurrentUser(user);
+      }
+    };
+
+    
+
+    getCurrent();
     fetchTodos();
   }, []);
 
-  const handleTaskChange = (event) => {
-    setNewTask(event.target.value);
-  };
+ 
 
-  const handleAddOrUpdateTask = async () => {
-    if (newTask.trim() !== "") {
-      if (isEditing) {
-        const updatedTodo = {
-          task: newTask,
-          deleted: false,
-          user_id: "",
-          todo_id: currentTaskId,
-          completed: false,
-          created_at: new Date().toISOString(),
-        };
-        try {
-          setTodo((prev) =>
-            prev.map((todo) =>
-              todo.todo_id === currentTaskId ? { ...todo, task: newTask } : todo
-            )
-          );
-          await updateTodo(newTask, currentTaskId);
-          setIsEditing(false);
-          setNewTask("");
-        } catch (error) {
-          toast.error("Error updating todo");
-        }
-      } else {
-        const id = uuidv4();
-        const newtodo = {
-          task: newTask,
-          deleted: false,
-          user_id: "",
-          todo_id: id,
-          completed: false,
-          created_at: new Date().toISOString(),
-        };
-        try {
-          setTodo([...todos, newtodo]);
-          await addTodo(newtodo);
-          setNewTask("");
-        } catch (error) {
-          toast.error("Error adding todo");
-        }
+  const todoSubmit = async (text) => {
+    if (text.trim() !== "") {
+      const id = uuidv4();
+      const newtodo = {
+        task: text,
+        deleted: false,
+        user_id: "",
+        todo_id: id,
+        completed: false,
+        created_at: new Date().toISOString(),
+      };
+
+      try {
+        setTodo([...todos, newtodo]);
+        await addTodo(newtodo);
+      } catch (error) {
+        toast.error("Error adding todo");
       }
     } else {
       toast.error("Please enter a task");
@@ -91,7 +80,7 @@ export default function TodoPage() {
     setTodo((prev) =>
       prev.map((todo, i) => {
         if (i === index) {
-          handleCompleted(todo.todo_id, !todo.completed);
+          handeCompleted(todo.todo_id, !todo.completed);
           return { ...todo, completed: !todo.completed };
         }
         return todo;
@@ -99,7 +88,7 @@ export default function TodoPage() {
     );
   };
 
-  const handleCompleted = async (todo_id, isCompleted) => {
+  const handeCompleted = async (todo_id, isCompleted) => {
     try {
       await markasCompletedDb(todo_id, isCompleted);
     } catch (error) {
@@ -110,9 +99,11 @@ export default function TodoPage() {
   const handleDelete = (index) => {
     setTodo((prev) => {
       const todoToDelete = prev[index];
+
       if (todoToDelete) {
         handleDeleteDb(todoToDelete.todo_id);
       }
+
       return prev.filter((_, i) => i !== index);
     });
   };
@@ -128,83 +119,101 @@ export default function TodoPage() {
 
   const handleEdit = (index) => {
     const todoedit = todos[index];
-    setNewTask(todoedit.task);
-    setIsEditing(true);
-    setCurrentTaskId(todoedit.todo_id);
+    setEditTodo(todoedit);
+    setIsOpen(true);
+  };
+
+  const handleEditDb = async (editedTodo) => {
+    setTodo((prev) =>
+      prev.map((todo) => {
+        if (todo.todo_id === editedTodo.todo_id) {
+          return { ...todo, task: editedTodo.task };
+        }
+        return todo;
+      })
+    );
+    try {
+      const response = await updateTodo(editedTodo.task, editedTodo.todo_id);
+      toast.success(response.message);
+    } catch (error) {
+      toast.error(error);
+    }
+  };
+
+  const toggleDarkMode = () => {
+    setIsDarkMode(!isDarkMode);
   };
 
   return (
-    <Container maxWidth="md" sx={{ minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", padding: 3 }}>
-      <Typography variant="h3" gutterBottom color="primary" sx={{ fontWeight: "bold", textAlign: "center" }}>
-        Todo List
-      </Typography>
-      
-      {/* Display logged-in user */}
-      <Typography variant="h6" color="textSecondary" sx={{ textAlign: "center", marginBottom: 3 }}>
-        Welcome, {user}
-      </Typography>
-
-      {/* Task Input Section */}
-      <Grid container spacing={2} sx={{ marginBottom: 3 }}>
-        <Grid item xs={12} sm={10}>
-          <TextField
-            fullWidth
-            label={isEditing ? "Edit Task" : "Add a new task"}
-            variant="outlined"
-            value={newTask}
-            onChange={handleTaskChange}
-            color="success"
-          />
-        </Grid>
-        <Grid item xs={12} sm={2}>
-          <Button
-            variant="contained"
-            color="success"
-            fullWidth
-            onClick={handleAddOrUpdateTask}
-            sx={{ height: "100%" }}
+    <div className={`
+      min-h-screen 
+      ${isDarkMode ? 'bg-gray-900 text-gray-100' : 'bg-gradient-to-br from-blue-50 to-blue-100'}
+      py-8 px-4 sm:px-6 lg:px-8
+    `}>
+      <div className="max-w-2xl mx-auto">
+        {/* User Display and Dark Mode Toggle */}
+        <div className="flex justify-between items-center mb-6">
+          {currentUser && (
+            <div className={`
+              text-lg font-semibold
+              ${isDarkMode ? 'text-gray-200' : 'text-blue-800'}
+            `}>
+              Welcome, {currentUser}
+            </div>
+          )}
+          <button 
+            onClick={toggleDarkMode}
+            className={`
+              px-4 py-2 rounded-full transition-colors duration-300
+              ${isDarkMode 
+                ? 'bg-gray-700 text-yellow-400 hover:bg-gray-600' 
+                : 'bg-blue-100 text-blue-800 hover:bg-blue-200'}
+            `}
           >
-            {isEditing ? "Update Task" : "Add Task"}
-          </Button>
-        </Grid>
-      </Grid>
+            {isDarkMode ? '☀️ Light Mode' : '🌙 Dark Mode'}
+          </button>
+        </div>
 
-      {/* Todo List Section */}
-      <Grid container spacing={2} sx={{ width: "100%" }}>
-        {todos.length > 0 ? (
-          todos.map((todo, index) => (
-            <Grid item xs={12} key={todo.todo_id}>
-              <Grid container spacing={2} alignItems="center" sx={{ backgroundColor: todo.completed ? "#e0f7fa" : "#ffffff", padding: 2, borderRadius: 2 }}>
-                <Grid item xs={1}>
-                  <Checkbox
-                    checked={todo.completed}
-                    onChange={() => markasCompleted(index)}
-                    color="success"
-                    sx={{ padding: 0 }}
-                  />
-                </Grid>
-                <Grid item xs={7}>
-                  <Typography variant="body1" sx={{ textDecoration: todo.completed ? "line-through" : "none", color: todo.completed ? "#b0bec5" : "inherit" }}>
-                    {todo.task}
-                  </Typography>
-                </Grid>
-                <Grid item xs={4} sx={{ textAlign: "right" }}>
-                  <IconButton onClick={() => handleEdit(index)} color="primary">
-                    <EditIcon />
-                  </IconButton>
-                  <IconButton onClick={() => handleDelete(index)} color="error">
-                    <DeleteIcon />
-                  </IconButton>
-                </Grid>
-              </Grid>
-            </Grid>
-          ))
-        ) : (
-          <Typography variant="h6" color="textSecondary" align="center" sx={{ width: "100%", marginTop: 2 }}>
-            No tasks available. Add a task to get started!
-          </Typography>
-        )}
-      </Grid>
-    </Container>
+        <header className="mb-6">
+          <h1 className={`
+            text-4xl font-extrabold text-center tracking-tight
+            ${isDarkMode ? 'text-white' : 'text-blue-800'}
+          `}>
+            Todo List
+          </h1>
+        </header>
+
+        <section className={`
+          shadow-xl rounded-lg overflow-hidden
+          ${isDarkMode ? 'bg-gray-800 border border-gray-700' : 'bg-white'}
+        `}>
+          {todos.length > 0 ? (
+            <ul className={`divide-y ${isDarkMode ? 'divide-gray-700' : 'divide-gray-200'}`}>
+              {todos.map((todo, index) => (
+                <TodoItem index={index} handleDelete={handleDelete} handleEdit={handleEdit} key={todo.todo_id} todo={todo} markasCompleted={markasCompleted} isDarkMode={isDarkMode}/>
+                
+              ))}
+            </ul>
+          ) : (
+            <div className={`
+              text-center py-10 
+              ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}
+            `}>
+              <p className="text-xl">No todos yet. Add a new task!</p>
+            </div>
+          )}
+        </section>
+
+        <FloatingButton theme={isDarkMode} toSubmit={todoSubmit} />
+
+        <EditForm
+          task={editTodo}
+          isOpen={isOpen}
+          onClose={() => setIsOpen(false)}
+          onSubmit={handleEditDb}
+          initialValue=""
+        />
+      </div>
+    </div>
   );
 }

@@ -43,8 +43,9 @@ def login():
         if not ispasswordmatched:
             return jsonify({"message": "Invalid password"}), 401
         
-        #access_token = create_access_token(identity=str(user["_id"]) )
-        access_token = create_access_token(identity={"user_id": str(user["_id"]), "username": user["username"]})
+        access_token = create_access_token(
+            identity=str(user["_id"]), 
+            additional_claims={"username": user["username"]})
 
         return jsonify({"access_token": access_token}), 200
     except Exception as e:
