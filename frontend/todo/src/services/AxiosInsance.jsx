@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const axiosInstance  = axios.create({
-    baseURL: "https://flask-react-todo-backend-60rw2jp6d-abdul-azees-projects.vercel.app/api/v1",
+    baseURL: "https://flask-react-todo-backend-htg6s1ufw-abdul-azees-projects.vercel.app/api/v1",
     headers: {
         "Content-Type": "application/json"
     },
