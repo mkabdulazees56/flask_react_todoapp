@@ -3,6 +3,7 @@ import axiosInstance from "./AxiosInsance";
 export const getAllTodos = async () => {
   try {
     const response = await axiosInstance.get("/todos/get-todos");
+    console.log(response)
     if (response.status === 200) {
       return response.data;
     }
