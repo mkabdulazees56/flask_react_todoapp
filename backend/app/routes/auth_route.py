@@ -5,23 +5,51 @@ from app.models.user import User
 
 auth_bp = Blueprint('auth', __name__)
 
+# @auth_bp.route('/register', methods=['POST'])
+# def register():
+#     data = request.get_json()
+
+#     email = data.get("email")
+#     username = data.get("username")
+#     password = data.get("password")
+
+#     existinguser = User.get_user_by_email(email)
+#     if existinguser:
+#         return jsonify({"message": "User already exists"}), 400
+    
+#     hashed_password = generate_password_hash(password)
+
+#     User.create_user(email, username, hashed_password)
+
+#     return jsonify({"message": "User registered successfully"}), 201
+
 @auth_bp.route('/register', methods=['POST'])
 def register():
-    data = request.get_json()
+    try:
+        data = request.get_json()
 
-    email = data.get("email")
-    username = data.get("username")
-    password = data.get("password")
+        if not data:
+            return jsonify({"message": "Invalid request, no data provided"}), 400
 
-    existinguser = User.get_user_by_email(email)
-    if existinguser:
-        return jsonify({"message": "User already exists"}), 400
-    
-    hashed_password = generate_password_hash(password)
+        email = data.get("email")
+        username = data.get("username")
+        password = data.get("password")
 
-    User.create_user(email, username, hashed_password)
+        if not email or not username or not password:
+            return jsonify({"message": "Missing required fields"}), 400
 
-    return jsonify({"message": "User registered successfully"}), 201
+        existinguser = User.get_user_by_email(email)
+        if existinguser:
+            return jsonify({"message": "User already exists"}), 400
+
+        hashed_password = generate_password_hash(password)
+
+        User.create_user(email, username, hashed_password)
+
+        return jsonify({"message": "User registered successfully"}), 201
+
+    except Exception as e:
+        return jsonify({"message": "An error occurred during registration", "error": str(e)}), 500
 
 @auth_bp.route('/login', methods=['POST'])
 def login():
